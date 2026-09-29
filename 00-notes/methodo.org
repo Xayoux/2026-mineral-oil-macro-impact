@@ -1,0 +1,42 @@
+* Objectif
+
+Etudier les impacts macro d'un choc sur les prix des métaux critiques et comparer ces effets à ceux d'un choc sur les prix du pétrole.
+
+Les effets sont-ils les mêmes ?
+Certains pays sont-ils plus impactés que d'autres ?
+
+* Variables endogènes :
+- Energy consummer prices
+- Core consummer prices
+- Industrial production
+- Stock prices
+- Short term interest rate
+- Long-term interest rate
+- Price of electricity ?
+- Industrial production price (pass through to consummer price?.)
+
+* Variables exogènes:
+- Prix du cuivre (autres métaux du LME ?) (comment faire exogénéité ? -> Alessandri2025 ?)
+- Prix du pétrole (ou chocs pourr exogénéité)
+
+* Variables de transition:
+- Prix du pétrole : effet différent selon crise ou pas
+- Intensité métalique : Effet différents pour les pays + dépendants aux métaux
+- Temps : Effet qui évolue dans le temps
+
+* Méthodologie
+Projections locales panel non-linéaire à transition lisse : 
+- Permet d'avoir un impact global mais également de regarder pays par pays
+- Intégration "facile" de la non-linéarité
+- Le fait que les prix du pétrole et des métaux soient communs à tous les pays est-il un problème? Se confond avec effets fixes temporels
+
+
+Pass-through methodology : Alessandri2025 ?
+
+\begin{equation}
+\label{eq:1}
+PT_h^s = \frac{\sum_{1:h} IRF_h^s \left( \text{core hicp} \right)}{\sum_{1:h} IRF_h^s \left( \text{energy hicp} \right) }
+\end{equation}
+
+
+What is the core inflation cost of a 1% rise in energy prices? And does that depend on whether the rise in energy prices originates in the gas or the oil market?
