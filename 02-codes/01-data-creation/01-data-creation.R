@@ -175,7 +175,7 @@ df_main <-
     .by = country,
     across(
       .cols = !c(time),
-      .fns = \(variable) {log(variable) - log(lag(variable)) * 100},
+      .fns = \(variable) {(log(variable) - log(lag(variable))) * 100},
       .names = "{.col}_log_diff"
     )
   ) |>
