@@ -166,7 +166,7 @@ df_main <-
   list(df_hicp, df_producer_prices, df_production) |>
   reduce(full_join, by = c("time", "country")) |>
   # Add financial data (no country so can't merge before)
-  full_join(
+  left_join(
     df_financial,
     join_by(time)
   ) |>
