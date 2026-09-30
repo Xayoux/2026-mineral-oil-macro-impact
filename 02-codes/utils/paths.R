@@ -24,6 +24,18 @@ path_processed_data_folder <- here("03-processed-data")
 # Path to main dataset
 path_processed_data_df_main <- here(path_processed_data_folder, "df-main.csv")
 
+
 # 04-output -----------------------------------------------------------------
 # Path to output folder
 path_output_folder <- here("04-output")
+
+# Path to graphs folder
+path_output_graphs_folder <- here(path_output_folder, "graphs")
+
+# Paths to country descriptive graph folder
+path_output_graphs_description_data_base_folder <-
+  here(path_output_graphs_folder, "description-graphs-base")
+
+# Paths to country descriptive graph folder
+path_output_graphs_description_data_log_diff_folder <-
+  here(path_output_graphs_folder, "description-graphs-log-diff")
