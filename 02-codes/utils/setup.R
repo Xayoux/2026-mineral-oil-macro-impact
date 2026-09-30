@@ -5,6 +5,7 @@ library(tidyverse)
 library(readxl)
 library(conflicted)
 library(furrr)
+library(janitor)
 
 
 # Remove scientific writing

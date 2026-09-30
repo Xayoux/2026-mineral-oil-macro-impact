@@ -21,6 +21,8 @@ path_codes_data_creation_folder <- here(path_codes_folder, "01-data-creation")
 # Path to processed data folder
 path_processed_data_folder <- here("03-processed-data")
 
+# Path to main dataset
+path_processed_data_df_main <- here(path_processed_data_folder, "df-main.csv")
 
 # 04-output -----------------------------------------------------------------
 # Path to output folder
