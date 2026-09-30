@@ -46,3 +46,8 @@ theme_set(
       strip.background = element_rect(fill = "grey90")
     )
 )
+
+# Import data ---------------------------------------------------------------
+df_main <-
+  path_processed_data_df_main |>
+  read_csv(show_col_types = FALSE)
