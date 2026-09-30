@@ -1,0 +1,84 @@
+% Created 2026-09-29 mar. 17:57
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\author{Romain Capliez}
+\date{\today}
+\title{}
+\hypersetup{
+ pdfauthor={Romain Capliez},
+ pdftitle={},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 29.1 (Org mode 9.6.6)}, 
+ pdflang={English}}
+\begin{document}
+
+\tableofcontents
+
+\section{Objectif}
+\label{sec:org1be0248}
+
+Etudier les impacts macro d'un choc sur les prix des métaux critiques et comparer ces effets à ceux d'un choc sur les prix du pétrole.
+
+Les effets sont-ils les mêmes ?
+Certains pays sont-ils plus impactés que d'autres ?
+
+\section{Variables endogènes :}
+\label{sec:orgc89b3a3}
+\begin{itemize}
+\item Energy consummer prices
+\item Core consummer prices
+\item Industrial production
+\item Stock prices
+\item Short term interest rate
+\item Long-term interest rate
+\item Price of electricity ?
+\item Industrial production price (pass through to consummer price?.)
+\end{itemize}
+
+\section{Variables exogènes:}
+\label{sec:orgddf725b}
+\begin{itemize}
+\item Prix du cuivre (autres métaux du LME ?) (comment faire exogénéité ? -> Alessandri2025 ?)
+\item Prix du pétrole (ou chocs pourr exogénéité)
+\end{itemize}
+
+\section{Variables de transition:}
+\label{sec:orgbc7ab05}
+\begin{itemize}
+\item Prix du pétrole : effet différent selon crise ou pas
+\item Intensité métalique : Effet différents pour les pays + dépendants aux métaux
+\item Temps : Effet qui évolue dans le temps
+\end{itemize}
+
+\section{Méthodologie}
+\label{sec:orgcbd8db5}
+Projections locales panel non-linéaire à transition lisse : 
+\begin{itemize}
+\item Permet d'avoir un impact global mais également de regarder pays par pays
+\item Intégration "facile" de la non-linéarité
+\item Le fait que les prix du pétrole et des métaux soient communs à tous les pays est-il un problème? Se confond avec effets fixes temporels
+\end{itemize}
+
+
+Pass-through methodology : Alessandri2025 ?
+
+\begin{equation}
+\label{eq:1}
+PT_h^s = \frac{\sum_{1:h} IRF_h^s \left( \text{core hicp} \right)}{\sum_{1:h} IRF_h^s \left( \text{energy hicp} \right) }
+\end{equation}
+
+
+What is the core inflation cost of a 1\% rise in energy prices? And does that depend on whether the rise in energy prices originates in the gas or the oil market?
+\end{document}

@@ -6,14 +6,14 @@ Les effets sont-ils les mêmes ?
 Certains pays sont-ils plus impactés que d'autres ?
 
 * Variables endogènes :
-- Energy consummer prices
-- Core consummer prices
-- Industrial production
+- Energy consummer prices : HICP Energy
+- Core consummer prices : HICP total + Industrial goods
+- Industrial production : Production in industry (3 types)
 - Stock prices
 - Short term interest rate
 - Long-term interest rate
 - Price of electricity ?
-- Industrial production price (pass through to consummer price?.)
+- Industrial production price (pass through to consummer price?.) : Producer prices in industry (3 types)
 
 * Variables exogènes:
 - Prix du cuivre (autres métaux du LME ?) (comment faire exogénéité ? -> Alessandri2025 ?)
