@@ -84,29 +84,89 @@ df_test <-
   drop_na()
 
 
-df_endog <-
+df_endog_level <-
   df_test |>
   select(!c(time, country)) |>
   select(
-    ends_with("log_diff")
+    !ends_with("log_diff")
   ) |>
   print()
 
+df <-
+  df_endog_level |>
+  select(
+    hicp_industrial_goods, producer_prices_manufacturing, production_manufacturing, LCPCASH, CRUDOIL, DJSTOXX
+  ) |>
+  mutate(log_LCPCASH = log(LCPCASH), log_CRUDOIL = log(CRUDOIL)) |>
+  select(!c(LCPCASH, CRUDOIL))
+
 res <-
-  lp_nl_iv(
-    endog_data = df_endog,
-    shock = df_test |>select(LCPCASH_log_diff),
-    cumul_mult = FALSE,
-    lags_endog_nl = 4,
+  lp_lin_iv(
+    endog_data = df,
+    shock = df |> select(log_LCPCASH),
+    cumul_mult = TRUE,
+    lags_endog = 24,
     confint = 1.96,
-    hor = 12,
+    hor = 24,
     trend = 1,
-    switching = df_test |>select(CRUDOIL_log_diff) |>pull(),
-    use_logistic = TRUE,
-    use_hp = FALSE,
-    gamma = 4
+    lags_criterion = NaN
   )
 
-plot(res)
+
+
+a <- plot_lin(res)
+
+
+a[[1]]
+
+names(res)
+
+res$specs
+
+res$irf_lin_mean
+
+summary(res)
+
+## library(patchwork)
+
+nb <- 5
+a$gg_s1[[nb]] + a$gg_s2[[nb]]
+
+
+
+df_main |>
+  pull(country) |>
+  unique()
+
 
 summary(res)[7] 
+
+
+
+
+df_panel <-
+  df_main |>
+  relocate(country, time) |>
+  mutate(.by = country,
+    hicp_total_lag = lag(hicp_total)
+  )
+
+res_panel <-
+  lp_lin_panel(
+    data_set = df_panel,
+    endog_data = "hicp_total",
+    cumul_mult = TRUE,
+    shock = "LCPCASH",
+    diff_shock = FALSE,
+    panel_model = "within",
+    panel_effect = "twoways",
+    confint = 1.96,
+    hor = 12,
+    lags_exog_data = 12
+  )
+
+a <- plot_lin(res_panel)
+
+a
+
+res_panel$reg_outputs

@@ -40,3 +40,5 @@ PT_h^s = \frac{\sum_{1:h} IRF_h^s \left( \text{core hicp} \right)}{\sum_{1:h} IR
 
 
 What is the core inflation cost of a 1% rise in energy prices? And does that depend on whether the rise in energy prices originates in the gas or the oil market?
+
+* Spécification
