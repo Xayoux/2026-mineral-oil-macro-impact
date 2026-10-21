@@ -161,22 +161,111 @@ df_production <-
 
 
 # Create main database ------------------------------------------------------
+df_financial_sa <-
+  df_financial |>
+  filter(time >= "1996-01") |>
+  pivot_longer(
+    cols = !time,
+    names_to = "variable",
+    values_to = "value"
+  ) |>
+  nest(.by = variable) |>
+  mutate(
+    # Conversion en objet time series
+    ts_data = map(data, ~ ts(.x$value, start = c(1996, 1), frequency = 12)),   
+    # Application de x13 sécurisée avec future_map
+    modele_x13 = future_map(ts_data, ~ x13(.x, spec = "RSA5c")),
+    # Fusion de la série SA avec le dataframe d'origine via la colonne 'time'
+    data_sa = map2(data, modele_x13, function(df_sub, mod) {
+      sa_ts <- mod$final$series[, "sa"]
+      # Récupération de l'index temporel exact sous forme de Date
+      df_sa <- tibble(
+        time = as.Date(zoo::as.yearmon(time(sa_ts))), 
+        value_sa = as.numeric(sa_ts)
+      )
+      df_sub <-
+        df_sub |>
+        mutate(
+          time = as.Date(paste0(time, "-01"))
+        )
+      # Joindre sur 'time' conserve le nombre de lignes original de df_sub
+      left_join(df_sub, df_sa, by = "time")
+    })
+  ) |>
+  select(variable, data_sa) |>
+  unnest(data_sa) |>
+  pivot_wider(
+    names_from = variable,
+    values_from = c(value, value_sa),
+    names_glue = "{variable}{ifelse(.value == 'value_sa', '_sa', '')}"
+  )
+
 df_main <-
   # Merge hicp, producer prices and production data together
   list(df_hicp, df_producer_prices, df_production) |>
   reduce(full_join, by = c("time", "country")) |>
+  pivot_longer(
+    cols = -c(time, country),
+    names_to = "variable",
+    values_to = "value"
+  ) |>
+  mutate(
+    .by = c(country, variable),
+    percent_na = mean(is.na(value)),
+    suppress_country = if_else(percent_na > 0.5, country, NA)
+  ) |>
+  filter(
+    !country %in% unique(suppress_country)
+  ) |>
+  filter(country != "malta") |> # no variations for producer prices
+  select(!c(percent_na, suppress_country)) |>
+  nest(.by = c(country, variable)) |>
+  mutate(
+    # Conversion en objet time series
+    ts_data = map(data, ~ ts(.x$value, start = c(1996, 1), frequency = 12)),  
+    # Application de x13 sécurisée avec future_map
+    modele_x13 = future_map(ts_data, ~ x13(.x, spec = "RSA5c")),
+    # Fusion de la série SA avec le dataframe d'origine via la colonne 'time'
+    data_sa = map2(data, modele_x13, function(df_sub, mod) {
+      sa_ts <- mod$final$series[, "sa"]
+      # Récupération de l'index temporel exact sous forme de Date
+      df_sa <- tibble(
+        time = as.Date(zoo::as.yearmon(time(sa_ts))), 
+        value_sa = as.numeric(sa_ts)
+      )
+      df_sub <-
+        df_sub |>
+        mutate(
+          time = as.Date(paste0(time, "-01"))
+        )
+      # Joindre sur 'time' conserve le nombre de lignes original de df_sub
+      left_join(df_sub, df_sa, by = "time")
+    })
+  ) |>
+  select(country, variable, data_sa) |>
+  unnest(data_sa) |>
+  pivot_wider(
+    names_from = variable,
+    values_from = c(value, value_sa),
+    names_glue = "{variable}{ifelse(.value == 'value_sa', '_sa', '')}"
+  ) |>
   # Add financial data (no country so can't merge before)
   left_join(
-    df_financial,
+    df_financial_sa,
     join_by(time)
-  ) |>
+  ) |>  
   # Compute log_diff for each variable
   mutate(
-    .by = country,
+    .by = country, 
     across(
       .cols = !c(time),
       .fns = \(variable) {(log(variable) - log(lag(variable))) * 100},
       .names = "{.col}_log_diff"
+    ),
+    across(
+      .cols = c(LCPCASH, LCPCASH_sa, CRUDOIL, CRUDOIL_sa, DJSTOXX, DJSTOXX_sa),
+      .fns = \(variable) {log(variable)},
+      .names = "{.col}_log"
     )
   ) |>
   print()
