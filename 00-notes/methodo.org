@@ -42,3 +42,25 @@ PT_h^s = \frac{\sum_{1:h} IRF_h^s \left( \text{core hicp} \right)}{\sum_{1:h} IR
 What is the core inflation cost of a 1% rise in energy prices? And does that depend on whether the rise in energy prices originates in the gas or the oil market?
 
 * Spécification
+hicp_total = producer_prices_manufacturing + production_manufacturing + CRUDOIL_log + DJSTOXX_log + *LCPCASH_log_diff*
+
+hicp_industrial_goods = producer_prices_manufacturing + production_manufacturing + CRUDOIL_log + DJSTOXX_log + *LCPCASH_log_diff*
+
+hicp_energy = producer_prices_electricity + production_electricity + CRUDOIL_log + DJSTOXX_log + *LCPCASH_log_diff*
+
+
+
+producer_prices_manufacturing = hicp_industrial_goods + production_manufacturing + CRUDOIL_log + DJSTOXX_log + *LCPCASH_log_diff*
+
+producer_prices_electricity = hicp_energy + production_electricity + CRUDOIL_log + DJSTOXX_log + *LCPCASH_log_diff*
+
+producer_prices_mining = hicp_energy + production_mining + CRUDOIL_log + DJSTOXX_log + *LCPCASH_log_diff*
+
+
+
+production_manufacturing = hicp_industrial_goods + producer_prices_manufacturing + CRUDOIL_log + DJSTOXX_log + *LCPCASH_log_diff*
+
+production_electricity = hicp_energy + producer_prices_electricity + CRUDOIL_log + DJSTOXX_log + *LCPCASH_log_diff*
+
+production_mining = hicp_energy + producer_prices_mining + CRUDOIL_log + DJSTOXX_log + *LCPCASH_log_diff*
+
