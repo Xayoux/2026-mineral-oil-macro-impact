@@ -39,3 +39,6 @@ path_output_graphs_description_data_level_folder <-
 # Paths to country descriptive graph folder
 path_output_graphs_description_data_log_diff_folder <-
   here(path_output_graphs_folder, "description-graphs-log-diff")
+
+path_output_graphs_lp_lin_country_folder <-
+  here(path_output_graphs_folder, "lp-lin-country")

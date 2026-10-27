@@ -10,6 +10,7 @@ library(glue)
 library(lpirfs)
 library(RJDemetra)
 library(zoo)
+library(patchwork)
 
 
 # Remove scientific writing
