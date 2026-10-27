@@ -33,8 +33,8 @@ path_output_folder <- here("04-output")
 path_output_graphs_folder <- here(path_output_folder, "graphs")
 
 # Paths to country descriptive graph folder
-path_output_graphs_description_data_base_folder <-
-  here(path_output_graphs_folder, "description-graphs-base")
+path_output_graphs_description_data_level_folder <-
+  here(path_output_graphs_folder, "description-graphs-level")
 
 # Paths to country descriptive graph folder
 path_output_graphs_description_data_log_diff_folder <-
