@@ -121,6 +121,161 @@ walk(
 )
 
 
+# Test LP --------------------------------------------------------------
+
+
+list_endog <-
+  list(
+    "hicp_total_sa",
+    "hicp_industrial_goods_sa",
+    "hicp_energy_sa",
+    "producer_prices_manufacturing_sa",
+    "producer_prices_electricity_sa",
+    "producer_prices_mining_sa",
+    "production_manufacturing_sa",
+    "production_electricity_sa",
+    "production_mining_sa"
+  )
+
+list_exog_copper <-
+  list(
+    c("producer_prices_manufacturing_sa", "production_manufacturing_sa", "CRUDOIL_log", "DJSTOXX_log"),
+    c("producer_prices_manufacturing_sa", "production_manufacturing_sa", "CRUDOIL_log", "DJSTOXX_log"),
+    c("producer_prices_electricity_sa", "production_electricity_sa", "CRUDOIL_log", "DJSTOXX_log"),
+    c("hicp_industrial_goods_sa", "production_manufacturing_sa", "CRUDOIL_log", "DJSTOXX_log"),
+    c("hicp_energy_sa", "production_electricity_sa", "CRUDOIL_log", "DJSTOXX_log"),
+    c("hicp_energy_sa", "production_mining_sa", "CRUDOIL_log", "DJSTOXX_log"),
+    c("hicp_industrial_goods_sa", "producer_prices_manufacturing_sa", "CRUDOIL_log", "DJSTOXX_log"),
+    c("hicp_energy_sa", "producer_prices_electricity_sa", "CRUDOIL_log", "DJSTOXX_log"),
+    c("hicp_energy_sa", "producer_prices_mining_sa", "CRUDOIL_log", "DJSTOXX_log")
+  )
+
+list_exog_oil <-
+  list(
+    c("producer_prices_manufacturing_sa", "production_manufacturing_sa", "LCPCASH_log", "DJSTOXX_log"),
+    c("producer_prices_manufacturing_sa", "production_manufacturing_sa", "LCPCASH_log", "DJSTOXX_log"),
+    c("producer_prices_electricity_sa", "production_electricity_sa", "LCPCASH_log", "DJSTOXX_log"),
+    c("hicp_industrial_goods_sa", "production_manufacturing_sa", "LCPCASH_log", "DJSTOXX_log"),
+    c("hicp_energy_sa", "production_electricity_sa", "LCPCASH_log", "DJSTOXX_log"),
+    c("hicp_energy_sa", "production_mining_sa", "LCPCASH_log", "DJSTOXX_log"),
+    c("hicp_industrial_goods_sa", "producer_prices_manufacturing_sa", "LCPCASH_log", "DJSTOXX_log"),
+    c("hicp_energy_sa", "producer_prices_electricity_sa", "LCPCASH_log", "DJSTOXX_log"),
+    c("hicp_energy_sa", "producer_prices_mining_sa", "LCPCASH_log", "DJSTOXX_log")
+  )
+
+
+
+function_lp_lin_graph_country <- function(df, country_name, list_endog, list_exog_copper, list_exog_oil) {
+  lp_lin_graph_indiv <-
+    pmap(
+      list(list_endog, list_exog_copper, list_exog_oil),
+      \(var_endog, var_exog_copper, var_exog_oil) {
+        df_endog <-
+          df |>
+          filter(country == country_name) |>
+          select(all_of(var_endog))
+
+        df_exog_copper <-
+          df |>
+          filter(country == country_name) |>
+          select(all_of(var_exog_copper))
+
+        df_exog_oil <-
+          df |>
+          filter(country == country_name) |>
+          select(all_of(var_exog_oil)) 
+
+        df_shock_copper <-
+          df |>
+          filter(country == country_name) |>
+          select(LCPCASH_log_diff)
+
+        df_shock_oil <-
+          df |>
+          filter(country == country_name) |>
+          select(CRUDOIL_log_diff) 
+
+        res_copper <-
+          lp_lin_iv(
+            endog_data = df_endog,
+            shock = df_shock_copper,
+            cumul_mult = TRUE,
+            lags_endog = 24,
+            confint = 1.96,
+            hor = 24,
+            trend = 1,
+            lags_criterion = NaN,
+            exog_data = df_exog_copper,
+            lags_exog = 24
+          )
+
+        res_oil <-
+          lp_lin_iv(
+            endog_data = df_endog,
+            shock = df_shock_oil,
+            cumul_mult = TRUE,
+            lags_endog = 24,
+            confint = 1.96,
+            hor = 24,
+            trend = 1,
+            lags_criterion = NaN,
+            exog_data = df_exog_oil,
+            lags_exog = 24
+          )
+
+        tibble(
+          res_copper_mean = res_copper$irf_lin_mean |> t() |> as.numeric(),
+          res_copper_low = res_copper$irf_lin_low |> t() |> as.numeric(),
+          res_copper_up = res_copper$irf_lin_up |> t() |> as.numeric(),
+          res_oil_mean = res_oil$irf_lin_mean |> t() |> as.numeric(),
+          res_oil_low = res_oil$irf_lin_low |> t() |> as.numeric(),
+          res_oil_up = res_oil$irf_lin_up |> t() |> as.numeric()
+        ) |>
+          mutate(
+            h = row_number()
+          ) |>
+          ggplot(aes(x = h)) +
+          geom_ribbon(aes(ymin = res_copper_low, ymax = res_copper_up), fill = "red", alpha = 0.2) +
+          geom_ribbon(aes(ymin = res_oil_low, ymax = res_oil_up), fill = "blue", alpha = 0.2) +
+          geom_line(aes(y = res_copper_mean), color = "red", linewidth = 1) +
+          geom_line(aes(y = res_oil_mean), color = "blue", linewidth = 1) +
+          geom_hline(yintercept =  0, color = "black") +
+          labs(
+            y = NULL,
+            x = NULL,
+            title = var_endog
+          ) +
+          theme(
+            panel.grid = element_blank()
+          )
+      }
+    )
+
+  wrap_plots(lp_lin_graph_indiv, ncol = 3) +
+    plot_annotation(title = country_name)
+}
+
+
+walk(
+  df_main |> pull(country) |> unique(),
+  \(country_name) {
+    function_lp_lin_graph_country(
+      df = df_main,
+      country_name = country_name,
+      list_endog = list_endog,
+      list_exog_copper = list_exog_copper,
+      list_exog_oil = list_exog_oil
+    )
+
+    ggsave(
+      here(path_output_graphs_lp_lin_country_folder, glue("lp-lin-{country_name}.png")),
+      width = 30,
+      height = 20
+    )
+  }
+)
+
+
 df_test <-
   df_main |>
   filter(country == "germany") |>
