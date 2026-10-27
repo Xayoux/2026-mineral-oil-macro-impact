@@ -278,8 +278,126 @@ walk(
 
 df_test <-
   df_main |>
-  filter(country == "germany") |>
-  drop_na()
+  filter(country == "france")
+
+endog <-
+  df_test |>
+  select(hicp_total_sa)
+
+exog_copper <-
+  df_test |>
+  select(production_manufacturing_sa, producer_prices_manufacturing_sa, CRUDOIL_log, DJSTOXX_log)
+
+exog_oil <-
+  df_test |>
+  select(production_manufacturing_sa, producer_prices_manufacturing_sa, LCPCASH_log, DJSTOXX_log)
+
+shock_copper <-
+  df_test |>
+  select(LCPCASH_log_diff)
+
+shock_oil <-
+  df_test |>
+  select(CRUDOIL_log_diff)
+
+switching <-
+  df_test |>
+  select(CRUDOIL_log_diff)
+
+
+res_copper <-
+  lp_lin_iv(
+    endog_data = endog,
+    shock = shock_copper,
+    cumul_mult = TRUE,
+    lags_endog = 24,
+    confint = 1.96,
+    hor = 24,
+    trend = 1,
+    lags_criterion = NaN,
+    exog_data = exog_copper,
+    lags_exog = 24
+  )
+
+res_oil <-
+  lp_lin_iv(
+    endog_data = endog,
+    shock = shock_oil,
+    cumul_mult = TRUE,
+    lags_endog = 24,
+    confint = 1.96,
+    hor = 24,
+    trend = 1,
+    lags_criterion = NaN,
+    exog_data = exog_oil,
+    lags_exog = 24
+  )
+
+
+
+tibble(
+  res_copper_mean = res_copper$irf_lin_mean |> t() |> as.numeric(),
+  res_copper_low = res_copper$irf_lin_low |> t() |> as.numeric(),
+  res_copper_up = res_copper$irf_lin_up |> t() |> as.numeric(),
+  res_oil_mean = res_oil$irf_lin_mean |> t() |> as.numeric(),
+  res_oil_low = res_oil$irf_lin_low |> t() |> as.numeric(),
+  res_oil_up = res_oil$irf_lin_up |> t() |> as.numeric()
+) |>
+  mutate(
+    h = row_number()
+  ) |>
+  ggplot(aes(x = h)) +
+  # Aires d'intervalle de confiance (en premier pour rester en arrière-plan)
+  geom_ribbon(aes(ymin = res_copper_low, ymax = res_copper_up), fill = "red", alpha = 0.2) +
+  geom_ribbon(aes(ymin = res_oil_low, ymax = res_oil_up), fill = "blue", alpha = 0.2) +
+  # Lignes de moyenne
+  geom_line(aes(y = res_copper_mean), color = "red", linewidth = 1) +
+  geom_line(aes(y = res_oil_mean), color = "blue", linewidth = 1) +
+  geom_hline(yintercept =  0, color = "black") +
+  theme(
+    panel.grid = element_blank()
+  )
+
+
+plot_lin(res_oil)
+
+
+dim(res_copper$irf_lin_mean)
+
+
+
+
+
+
+
+
+
+
+a <- plot_lin(res)
+
+a
+
+res_nl <-
+  lp_nl_iv(
+    endog_data = endog,
+    shock = shock,
+    cumul_mult = TRUE,
+    lags_endog = 24,
+    confint = 1.96,
+    hor = 24,
+    trend = 1,
+    lags_criterion = NaN,
+    exog_data = exog,
+    lags_exog = 24,
+    switching = switching,
+    use_logistic = TRUE,
+    gamma = 10,
+    use_hp = FALSE
+  )
+
+b <- plot_nl(res_nl)
+
+b$gg_s1[[1]] + b$gg_s2[[1]]
 
 
 df_endog_level <-
@@ -291,31 +409,59 @@ df_endog_level <-
   print()
 
 df <-
-  df_endog_level |>
+  df_test |>
   select(
-    hicp_industrial_goods, producer_prices_manufacturing, production_manufacturing, LCPCASH, CRUDOIL, DJSTOXX
+    hicp_industrial_goods_sa, producer_prices_manufacturing_sa, production_manufacturing_sa, LCPCASH, CRUDOIL, DJSTOXX,
+    LCPCASH_log_diff
   ) |>
   mutate(log_LCPCASH = log(LCPCASH), log_CRUDOIL = log(CRUDOIL)) |>
-  select(!c(LCPCASH, CRUDOIL))
+  select(!c(LCPCASH, CRUDOIL)) |>
+  drop_na()
+
+df_cumul <-
+  df |>
+  mutate(
+    hicp_industrial_goods_cumul = cumsum(hicp_industrial_goods),
+    LCPCASH_log_diff_cumul = cumsum(LCPCASH_log_diff)
+  ) |>
+  relocate(hicp_industrial_goods_cumul, LCPCASH_log_diff_cumul) |>
+  select(!c(hicp_industrial_goods, LCPCASH_log_diff))
 
 res <-
   lp_lin_iv(
-    endog_data = df,
-    shock = df |> select(log_LCPCASH),
+    endog_data = df |> select(hicp_industrial_goods_sa),
+    shock = df |> select(LCPCASH_log_diff),
     cumul_mult = TRUE,
     lags_endog = 24,
     confint = 1.96,
     hor = 24,
     trend = 1,
-    lags_criterion = NaN
+    lags_criterion = NaN,
+    exog_data = df |>select(!c(hicp_industrial_goods_sa, log_LCPCASH)),
+    lags_exog = 24
+  )
+
+res_cumul <-
+  lp_lin_iv(
+    endog_data = df_cumul |> select(hicp_industrial_goods_cumul),
+    shock = df_cumul |> select(LCPCASH_log_diff_cumul),
+    cumul_mult = FALSE,
+    lags_endog = 24,
+    confint = 1.96,
+    hor = 24,
+    trend = 1,
+    lags_criterion = NaN,
+    exog_data = df_cumul |>select(!c(hicp_industrial_goods_cumul, log_LCPCASH, LCPCASH_log_diff_cumul)),
+    lags_exog = 24
   )
 
 
 
 a <- plot_lin(res)
+b <- plot_lin(res_cumul)
 
 
-a[[1]]
+a[[1]] + b[[1]]
 
 names(res)
 
@@ -346,8 +492,8 @@ df_panel <-
   df_main |>
   relocate(country, time) |>
   mutate(.by = country,
-    hicp_total_lag = lag(hicp_total)
-  )
+         hicp_total_lag = lag(hicp_total)
+         )
 
 res_panel <-
   lp_lin_panel(
@@ -368,3 +514,79 @@ a <- plot_lin(res_panel)
 a
 
 res_panel$reg_outputs
+
+
+# TEst delta method ------------------------------------------------------
+library(msm)
+
+## Simple linear regression, E(y) = alpha + beta x 
+x <- 1:100
+y <- rnorm(100, 4*x, 5)
+toy.lm <- lm(y ~ x)
+estmean <- coef(toy.lm)
+estvar <- summary(toy.lm)$cov.unscaled * summary(toy.lm)$sigma^2
+
+## Estimate of (1 / (alphahat + betahat))
+1 / (estmean[1] + estmean[2])
+## Approximate standard error
+deltamethod (~ 1 / (x1 + x2), estmean, estvar) 
+
+## We have a variable z we would like to use within the formula.
+z <- 1
+## deltamethod (~ z / (x1 + x2), estmean, estvar) will not work.
+## Instead, build up the formula as a string, and convert to a formula.
+form <- sprintf("~ %f / (x1 + x2)", z)
+form
+deltamethod(as.formula(form), estmean, estvar)
+
+(estmean[1] / estmean[2])
+## Approximate standard error
+deltamethod (~ (x1 / x2), estmean, estvar)
+
+# Test désaisonaliser ----------------------------
+library(RJDemetra)
+
+# Exemple avec une série temporelle mensuelle (AirPassengers)
+data("AirPassengers")
+
+# Traitement avec la spécification standard Eurostat (RSA5c)
+res_x13 <- x13(AirPassengers, spec = "RSA5c")
+
+# Inspection du modèle (modèle ARIMA, outliers détectés, régresseurs)
+summary(res_x13)
+
+# Extraction de la série corrigée des variations saisonnières (CVS / SA)
+serie_sa <- res_x13$final$series[, "sa"]
+
+# Visualisation native de la décomposition
+plot(res_x13)
+
+# Superposition de la série brute et de la série ajustée
+plot(AirPassengers, col = "grey50", lty = 2, ylab = "Valeur", main = "Désaisonnalisation (Norme Eurostat)")
+lines(serie_sa, col = "blue", lwd = 2)
+legend("topleft", legend = c("Brute", "Désaisonnalisée (SA)"), 
+       col = c("grey50", "blue"), lty = c(2, 1), lwd = c(1, 2))
+
+plot(AirPassengers)
+
+res_x13 <- df_main |>
+  filter(country == "france") |>
+  select(hicp_total) |>
+  ts(frequency = 12, start = c(1996,1)) |>
+  x13()
+
+
+serie_sa <- res_x13$final$series[, "sa"]
+
+serie_y <- res_x13$final$series[, "y"]
+
+
+plot(serie_y, col = "grey50", lty = 2, ylab = "Valeur", main = "Désaisonnalisation (Norme Eurostat)")
+lines(serie_sa, col = "blue", lwd = 2)
+legend("topleft", legend = c("Brute", "Désaisonnalisée (SA)"), 
+       col = c("grey50", "blue"), lty = c(2, 1), lwd = c(1, 2))
+
+forecast::ggseasonplot(df_main |>
+                         filter(country == "malta") |>
+                         select(hicp_total) |>
+                         ts(frequency = 12, start = c(1996,1)))
