@@ -8,9 +8,15 @@ library(furrr)
 library(janitor)
 library(glue)
 library(lpirfs)
-library(RJDemetra)
 library(zoo)
 library(patchwork)
+
+# Avoid error if Java is not installed
+tryCatch({
+  library(RJDemetrax)
+}, error = function(e) {
+  message("RJDemetra error : install Java if needed")
+})
 
 
 # Remove scientific writing
