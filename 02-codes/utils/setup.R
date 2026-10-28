@@ -38,6 +38,14 @@ walk(
   \(path) dir.create(path, showWarnings = FALSE, recursive = TRUE)
 )
 
+
+# Import R functions --------------------------------------------------------
+walk(
+  list.files(path_codes_functions_R_folder,  full.names = TRUE),
+  source
+)
+ 
+
 # Setup parallel workers ----------------------------------------------------
 plan(multisession, workers = parallelly::availableCores() - 1)
 
