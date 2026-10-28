@@ -70,3 +70,59 @@ theme_set(
 df_main <-
   path_processed_data_df_main |>
   read_csv(show_col_types = FALSE)
+
+
+# Setup all the specifications for LPs --------------------------------------
+# Endogenous variables for each specifications
+list_endog <-
+  list(
+    "hicp_total_sa",
+    "hicp_industrial_goods_sa",
+    "hicp_energy_sa",
+    "producer_prices_manufacturing_sa",
+    "producer_prices_electricity_sa",
+    "producer_prices_mining_sa",
+    "production_manufacturing_sa",
+    "production_electricity_sa",
+    "production_mining_sa"
+  )
+
+# Exogenous variables for each specification with a copper shock
+list_exog_copper <-
+  list(
+    c("producer_prices_manufacturing_sa", "production_manufacturing_sa",
+      "CRUDOIL_log", "DJSTOXX_log"),
+    c("producer_prices_manufacturing_sa", "production_manufacturing_sa",
+      "CRUDOIL_log", "DJSTOXX_log"),
+    c("producer_prices_electricity_sa", "production_electricity_sa",
+      "CRUDOIL_log", "DJSTOXX_log"),
+    c("hicp_industrial_goods_sa", "production_manufacturing_sa", "CRUDOIL_log",
+      "DJSTOXX_log"),
+    c("hicp_energy_sa", "production_electricity_sa", "CRUDOIL_log", "DJSTOXX_log"),
+    c("hicp_energy_sa", "production_mining_sa", "CRUDOIL_log", "DJSTOXX_log"),
+    c("hicp_industrial_goods_sa", "producer_prices_manufacturing_sa",
+      "CRUDOIL_log", "DJSTOXX_log"),
+    c("hicp_energy_sa", "producer_prices_electricity_sa", "CRUDOIL_log",
+      "DJSTOXX_log"),
+    c("hicp_energy_sa", "producer_prices_mining_sa", "CRUDOIL_log", "DJSTOXX_log")
+  )
+
+# Exogenous variables for each specification with a oil shock
+list_exog_oil <-
+  list(
+    c("producer_prices_manufacturing_sa", "production_manufacturing_sa",
+      "LCPCASH_log", "DJSTOXX_log"),
+    c("producer_prices_manufacturing_sa", "production_manufacturing_sa",
+      "LCPCASH_log", "DJSTOXX_log"),
+    c("producer_prices_electricity_sa", "production_electricity_sa",
+      "LCPCASH_log", "DJSTOXX_log"),
+    c("hicp_industrial_goods_sa", "production_manufacturing_sa", "LCPCASH_log",
+      "DJSTOXX_log"),
+    c("hicp_energy_sa", "production_electricity_sa", "LCPCASH_log", "DJSTOXX_log"),
+    c("hicp_energy_sa", "production_mining_sa", "LCPCASH_log", "DJSTOXX_log"),
+    c("hicp_industrial_goods_sa", "producer_prices_manufacturing_sa",
+      "LCPCASH_log", "DJSTOXX_log"),
+    c("hicp_energy_sa", "producer_prices_electricity_sa", "LCPCASH_log",
+      "DJSTOXX_log"),
+    c("hicp_energy_sa", "producer_prices_mining_sa", "LCPCASH_log", "DJSTOXX_log")
+  )
