@@ -256,5 +256,10 @@ function_lp_nl_graph_country <- function(df, country_name, list_endog,
   }
   
   
-  return(list_graph)
+  return(
+    list(
+      df_lp_nl = lp_nl_indiv,
+      graph_lp_nl = list_graph
+    )
+  )
 }

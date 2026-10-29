@@ -175,5 +175,10 @@ function_lp_lin_graph_country <- function(df, country_name, list_endog,
     ) +
     facet_wrap(facets = vars(var_endog), ncol = 3, scales = "free")
 
-  return(graph)
+  return(
+    list(
+      df_lp_lin = lp_lin_indiv,
+      graph_lp_lin = graph
+    )
+  )
 }
