@@ -123,26 +123,31 @@ walk(
 
 # Linear LP ----------------------------------------------------------------
 # Create and save graphs for Linear LP IRFs for each specification and country
-walk(
+map_dfr(
   df_main |> pull(country) |> unique(),
   \(country_name) {
-    function_lp_lin_graph_country(
-      df = df_main,
-      country_name = country_name,
-      list_endog = list_endog,
-      list_exog_copper = list_exog_copper,
-      list_exog_oil = list_exog_oil,
-      shock_copper = "LCPCASH_log_diff",
-      shock_oil = "CRUDOIL_log_diff"
-    )
+    res_lp <-
+      function_lp_lin_graph_country(
+        df = df_main,
+        country_name = country_name,
+        list_endog = list_endog,
+        list_exog_copper = list_exog_copper,
+        list_exog_oil = list_exog_oil,
+        shock_copper = "LCPCASH_log_diff",
+        shock_oil = "CRUDOIL_log_diff"
+      )
 
     ggsave(
       here(path_output_graphs_lp_lin_country_folder, glue("lp-lin-{country_name}.png")),
+      res_lp[["graph_lp_lin"]],
       width = 30,
       height = 20
     )
+
+    return(res_lp[["df_lp_lin"]])
   }
-)
+) |>
+  write_csv(file = here(path_processed_data_LP_lin_folder, "lp-lin-res.csv"))
 
 
 # Non-linear LP ------------------------------------------------------------
@@ -158,3 +163,37 @@ a <- function_lp_nl_graph_country(
   switching_var = "CRUDOIL_log_diff"
 )
 
+map_dfr(
+  df_main |> pull(country) |> unique(),
+  \(country_name) {
+    res_lp <-
+      function_lp_nl_graph_country(
+        df = df_main,
+        country_name = country_name,
+        list_endog = list_endog,
+        list_exog_copper = list_exog_copper,
+        list_exog_oil = list_exog_oil,
+        shock_copper = "LCPCASH_log_diff",
+        shock_oil = "CRUDOIL_log_diff",
+        switching_var = "CRUDOIL_log_diff"
+      )
+
+    walk2(
+      res_lp[["graph_lp_nl"]],
+      c("hicp", "producer-prices",  "production"),
+      \(graph, group) {
+        ggsave(
+          here(path_output_graphs_lp_ln_country_folder,
+               glue("lp-ln-{group}-{country_name}.png")),
+          graph,
+          width = 30,
+          height = 20
+        )
+      }
+    )
+    
+
+    return(res_lp[["df_lp_ln"]])
+  }
+) |>
+  write_csv(file = here(path_processed_data_LP_lin_folder, "lp-lin-res.csv"))
