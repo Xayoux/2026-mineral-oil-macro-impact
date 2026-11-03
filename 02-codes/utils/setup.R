@@ -66,9 +66,21 @@ theme_set(
 )
 
 # Import data ---------------------------------------------------------------
-df_main <-
+# Main Df
+if (file.exists(path_processed_data_df_main)) {
+  df_main <-
   path_processed_data_df_main |>
   read_csv(show_col_types = FALSE)
+}
+
+
+# Df with values of gamma for each country and specification
+if (file.exists(here(path_processed_data_LP_nl_folder, "gamma.csv"))){
+  df_gamma <-
+    here(path_processed_data_LP_nl_folder, "gamma.csv") |>
+    rea_csv(show_col_types = FALSE)
+}
+
 
 
 # Setup all the specifications for LPs --------------------------------------
