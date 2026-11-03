@@ -1,5 +1,5 @@
 #' Compute non-linear LP results and return a df for 2 different shocks for a
-#' specific country
+#' specific country and specification
 #'
 #' Non-linearity is compute with a logistic transition function
 #'
@@ -22,7 +22,7 @@
 sub_function_lp_nl_res_country <- function(df, country_name, var_endog,
                                            var_exog_copper, var_exog_oil,
                                            shock_copper, shock_oil,
-                                           switching_var) {
+                                           switching_var, df_gamma) {
   # Df with endogenous variable
   df_country <-
     df |>
@@ -58,6 +58,24 @@ sub_function_lp_nl_res_country <- function(df, country_name, var_endog,
     df_country |>
     select(all_of(switching_var))
 
+  # Value of gamma_copper for this country and specification
+  gamma_copper <-
+    df_gamma |>
+    filter(
+      country = country_name,
+      specification = var_endog
+    ) |>
+    pull(gamma_copper)
+
+  # Value of gamma_oil for this country and specification
+  gamma_oil <-
+    df_gamma |>
+    filter(
+      country = country_name,
+      specification = var_endog
+    ) |>
+    pull(gamma_oil)
+
   # Non-linear LP res for the copper shock
   res_copper <-
     lp_nl_iv(
@@ -72,7 +90,7 @@ sub_function_lp_nl_res_country <- function(df, country_name, var_endog,
       exog_data = df_exog_copper,
       lags_exog = 24,
       switching = df_switching,
-      gamma = 1,
+      gamma = gamma_copper,
       use_hp = FALSE
     )
 
@@ -90,7 +108,7 @@ sub_function_lp_nl_res_country <- function(df, country_name, var_endog,
       exog_data = df_exog_oil,
       lags_exog = 24,
       switching = df_switching,
-      gamma = 1,
+      gamma = gamma_oil,
       use_hp = FALSE
     )
 
@@ -150,7 +168,8 @@ sub_function_lp_nl_res_country <- function(df, country_name, var_endog,
 #' right panel = Regime 2)
 function_lp_nl_graph_country <- function(df, country_name, list_endog,
                                           list_exog_copper, list_exog_oil,
-                                          shock_copper, shock_oil, switching_var) {
+                                         shock_copper, shock_oil, switching_var,
+                                         df_gamma) {
   # Df with results for LP with copper and oil shocks
   # Do 1 LP for each specification. Each specifications are join in rows with
   # the endogenous indicated in the `var_endog` variable of the Df
@@ -166,7 +185,8 @@ function_lp_nl_graph_country <- function(df, country_name, list_endog,
           var_exog_oil = var_exog_oil,
           shock_copper = shock_copper,
           shock_oil = shock_oil,
-          switching_var = switching_var
+          switching_var = switching_var,
+          df_gamma = df_gamma
         )
       }
     )
