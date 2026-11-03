@@ -28,8 +28,8 @@ path_processed_data_df_main <- here(path_processed_data_folder, "df-main.csv")
 path_processed_data_LP_lin_folder <-
   here(path_processed_data_folder, "lp-lin")
 
-path_processed_data_LP_ln_folder <-
-here(path_processed_data_folder, "lp-ln")  
+path_processed_data_LP_nl_folder <-
+here(path_processed_data_folder, "lp-nl")  
 
 # 04-output -----------------------------------------------------------------
 # Path to output folder
@@ -49,5 +49,6 @@ path_output_graphs_description_data_log_diff_folder <-
 path_output_graphs_lp_lin_country_folder <-
   here(path_output_graphs_folder, "lp-lin-country")
 
-path_output_graphs_lp_ln_country_folder <-
-  here(path_output_graphs_folder, "lp-ln-country")
+path_output_graphs_lp_nl_country_folder <-
+  here(path_output_graphs_folder, "lp-nl-country")
+
