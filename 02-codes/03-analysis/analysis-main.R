@@ -168,7 +168,7 @@ a <- map_dfr(
 ) |>
   view()
 
-  write_csv(a, file = here(path_output_graphs_lp_nl_country_folder, "gamma.csv"))
+  write_csv(a, file = here(path_processed_data_LP_nl_folder, "gamma.csv"))
 
 # Estimate the NL-LP for each country and specification
 map_dfr(
