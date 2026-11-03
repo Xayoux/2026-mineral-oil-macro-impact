@@ -13,11 +13,10 @@ library(patchwork)
 
 # Avoid error if Java is not installed
 tryCatch({
-  library(RJDemetrax)
+  library(RJDemetra)
 }, error = function(e) {
   message("RJDemetra error : install Java if needed")
 })
-
 
 # Remove scientific writing
 options(scipen = 999)
