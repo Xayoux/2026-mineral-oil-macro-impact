@@ -183,7 +183,8 @@ map_dfr(
         list_exog_oil = list_exog_oil,
         shock_copper = "LCPCASH_log_diff",
         shock_oil = "CRUDOIL_log_diff",
-        switching_var = "CRUDOIL_log_diff"
+        switching_var = "CRUDOIL_log_diff",
+        df_gamma = df_gamma
       )
 
     walk2(
