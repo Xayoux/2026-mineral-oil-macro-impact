@@ -151,18 +151,26 @@ map_dfr(
 
 
 # Non-linear LP ------------------------------------------------------------
-# Test function for non-linear LP IFRs
-a <- function_lp_nl_graph_country(
-  df = df_main,
-  country_name = "france",
-  list_endog = list_endog,
-  list_exog_copper = list_exog_copper,
-  list_exog_oil = list_exog_oil,
-  shock_copper = "LCPCASH_log_diff",
-  shock_oil = "CRUDOIL_log_diff",
-  switching_var = "CRUDOIL_log_diff"
-)
+# Search grid to find the gamma which maximise the R² for the first horizon
+# For each country, specification and shock
+a <- map_dfr(
+  df_main |> pull(country) |> unique(),
+  \(country_name) function_grid_search_lp_gamma_country(
+    df = df_main,
+    country_name = country_name,
+    list_endog = list_endog,
+    list_exog_copper = list_exog_copper,
+    list_exog_oil = list_exog_oil,
+    shock_copper = "LCPCASH_log_diff",
+    shock_oil = "CRUDOIL_log_diff",
+    switching_var = "CRUDOIL_log_diff"
+  )
+) |>
+  view()
 
+  write_csv(a, file = here(path_output_graphs_lp_nl_country_folder, "gamma.csv"))
+
+# Estimate the NL-LP for each country and specification
 map_dfr(
   df_main |> pull(country) |> unique(),
   \(country_name) {
@@ -183,7 +191,7 @@ map_dfr(
       c("hicp", "producer-prices",  "production"),
       \(graph, group) {
         ggsave(
-          here(path_output_graphs_lp_ln_country_folder,
+          here(path_output_graphs_lp_nl_country_folder,
                glue("lp-ln-{group}-{country_name}.png")),
           graph,
           width = 30,
@@ -193,7 +201,20 @@ map_dfr(
     )
     
 
-    return(res_lp[["df_lp_ln"]])
+    return(res_lp[["df_lp_nl"]])
   }
 ) |>
-  write_csv(file = here(path_processed_data_LP_lin_folder, "lp-lin-res.csv"))
+  write_csv(file = here(path_processed_data_LP_nl_folder, "lp-nl-res.csv"))
+
+
+
+
+
+
+
+
+
+
+
+
+  
