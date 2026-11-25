@@ -62,8 +62,8 @@ sub_function_lp_nl_res_country <- function(df, country_name, var_endog,
   gamma_copper <-
     df_gamma |>
     filter(
-      country = country_name,
-      specification = var_endog
+      country == country_name,
+      specification == var_endog
     ) |>
     pull(gamma_copper)
 
@@ -71,8 +71,8 @@ sub_function_lp_nl_res_country <- function(df, country_name, var_endog,
   gamma_oil <-
     df_gamma |>
     filter(
-      country = country_name,
-      specification = var_endog
+      country == country_name,
+      specification == var_endog
     ) |>
     pull(gamma_oil)
 
