@@ -352,20 +352,22 @@ df_global_data <-
   print()
 
 
+write_csv(
+  x = df_global_data, 
+  file = here(path_processed_data_main_data_folder, "df-global-data.csv")
+)
 
 
-
-
-
-
-
-
-df_main <-
-  # Merge hicp, producer prices and production data together
+# Create tibble for global data
+df_country_data <-
+  # Take df with global data -> but not for shocks -> na sa for shocks
   list(df_hicp, df_producer_prices, df_production) |>
   reduce(full_join, by = c("time", "country")) |>
+  # Convert time in a Date type (need for ts and lag)
+  mutate(time = as.Date(paste0(time, "-01"))) |>
+  arrange(time) |>
   pivot_longer(
-    cols = -c(time, country),
+    cols = !c(time, country),
     names_to = "variable",
     values_to = "value"
   ) |>
@@ -379,51 +381,71 @@ df_main <-
   ) |>
   filter(country != "malta") |> # no variations for producer prices
   select(!c(percent_na, suppress_country)) |>
+  # Nest by variable so that we can sa each variable
   nest(.by = c(country, variable)) |>
   mutate(
-    # Conversion en objet time series
-    ts_data = map(data, ~ ts(.x$value, start = c(1996, 1), frequency = 12)),  
-    # Application de x13 sécurisée avec future_map
+    # Convert each variable in a TS object with a dynamic start date
+    ts_data = map(
+      data,
+      \(df_sub) {
+        # Keep only values between the first and last non-NA 
+        idx_valides <- which(!is.na(df_sub$value))
+        df_clean <- df_sub[min(idx_valides):max(idx_valides), ]
+        # Extract the month and year date of the start
+        date_debut <- min(df_clean$time)
+        start_vec <-
+          c(
+            as.integer(format(date_debut, "%Y")),
+            as.integer(format(date_debut, "%m"))
+          )
+        # Create the TS object
+        ts(df_clean$value, start = start_vec, frequency = 12)
+      }),
+    # Use Eurostat x13 method to sa each variable
     modele_x13 = future_map(ts_data, ~ x13(.x, spec = "RSA5c")),
-    # Fusion de la série SA avec le dataframe d'origine via la colonne 'time'
-    data_sa = map2(data, modele_x13, function(df_sub, mod) {
-      sa_ts <- mod$final$series[, "sa"]
-      # Récupération de l'index temporel exact sous forme de Date
-      df_sa <- tibble(
-        time = as.Date(zoo::as.yearmon(time(sa_ts))), 
-        value_sa = as.numeric(sa_ts)
+    # Merge sa series with original series thanks to the time column
+    data_sa =
+      map2(
+        data,
+        modele_x13,
+        function(df_sub, mod) {
+          # Keep the seasonally adjusted series
+          sa_ts <- mod$final$series[, "sa"]
+          # Create a dfwith the temporal index and the sa series 
+          df_sa <-
+            tibble(
+              time = as.Date(zoo::as.yearmon(time(sa_ts))),
+              value_sa = as.numeric(sa_ts)
+            )
+          # Join with the original series
+          left_join(df_sub, df_sa, by = "time")
+        }
       )
-      df_sub <-
-        df_sub |>
-        mutate(
-          time = as.Date(paste0(time, "-01"))
-        )
-      # Joindre sur 'time' conserve le nombre de lignes original de df_sub
-      left_join(df_sub, df_sa, by = "time")
-    })
   ) |>
   select(country, variable, data_sa) |>
   unnest(data_sa) |>
+  # Pivot wider to have each variable in column. Add "_sa" for sa series
   pivot_wider(
     names_from = variable,
     values_from = c(value, value_sa),
     names_glue = "{variable}{ifelse(.value == 'value_sa', '_sa', '')}"
   ) |>
-  # Add financial data (no country so can't merge before)
-  left_join(
-    df_financial_sa,
-    join_by(time)
+  arrange(time) |>
+  # Compute log_diff for all variables except variables already in log
+  mutate(
+    across(
+      .cols = !c(time, country),
+      .fns = \(x) {(log(x) - log(lag(x))) * 100},
+      .names = "{.col}_log_diff"
+    )
   ) |>
   print()
 
 
-# Save database
 write_csv(
-  df_main,
-  path_processed_data_df_main
+  x = df_country_data, 
+  file = here(path_processed_data_main_data_folder, "df-country-data.csv")
 )
-
-
 
 
 
