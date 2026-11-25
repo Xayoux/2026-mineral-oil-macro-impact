@@ -66,11 +66,33 @@ theme_set(
 )
 
 # Import data ---------------------------------------------------------------
-# Main Df
-if (file.exists(path_processed_data_df_main)) {
-  df_main <-
-  path_processed_data_df_main |>
+# Df for country specific data
+if (file.exists(here(path_processed_data_main_data_folder, "df-country-data.csv"))) {
+  df_country_data <-
+  here(path_processed_data_main_data_folder, "df-country-data.csv") |>
   read_csv(show_col_types = FALSE)
+}
+
+
+# Df for global data
+if (file.exists(here(path_processed_data_main_data_folder, "df-global-data.csv"))) {
+  df_global_data <-
+  here(path_processed_data_main_data_folder, "df-global-data.csv") |>
+  read_csv(show_col_types = FALSE)
+}
+
+
+# Main Df : all variables
+if (
+  file.exists(here(path_processed_data_main_data_folder, "df-country-data.csv")) &
+    file.exists(here(path_processed_data_main_data_folder, "df-global-data.csv")) 
+) {
+  df_main <-
+    df_country_data |>
+    left_join(
+      df_global_data,
+      join_by(time == time)
+    )
 }
 
 
