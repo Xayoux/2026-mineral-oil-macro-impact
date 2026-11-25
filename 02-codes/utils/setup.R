@@ -78,7 +78,7 @@ if (file.exists(path_processed_data_df_main)) {
 if (file.exists(here(path_processed_data_LP_nl_folder, "gamma.csv"))){
   df_gamma <-
     here(path_processed_data_LP_nl_folder, "gamma.csv") |>
-    rea_csv(show_col_types = FALSE)
+    read_csv(show_col_types = FALSE)
 }
 
 
